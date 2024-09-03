@@ -1,5 +1,10 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+import Comment from './comment';  // Import Comment model
+import Like from './like';        // Import Like model
+import Follow from './follow';    // Import Follow model
+import Save from './save'; 
+
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -24,6 +29,29 @@ const UserSchema: Schema = new Schema({
     type: Number,
     default: 0, // Default to 0, can be updated based on actions
   },
+});
+
+UserSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+  try {
+    const userId = this._id;
+
+    // Delete related comments
+    await Comment.deleteMany({ userId });
+
+    // Delete related likes
+    await Like.deleteMany({ userId });
+
+    // Delete related follows
+    await Follow.deleteMany({ followerId: userId });
+    await Follow.deleteMany({ followingId: userId });
+
+    // Delete related saves
+    await Save.deleteMany({ userId });
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 const User = mongoose.model<IUser>('User', UserSchema);
