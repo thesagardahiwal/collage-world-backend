@@ -3,7 +3,7 @@ import multer from 'multer';
 import { uploadResource, getResourceById, updateResourceById, deleteResourceById } from '../controllers/eduResourceController';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });  // Directory for temporary file storage
+const upload = multer({ dest: 'collageWorld/' });  // Directory for temporary file storage
 
 // Route to upload a resource (one at a time)
 router.post('/resources/upload', upload.single('resource'), uploadResource);
