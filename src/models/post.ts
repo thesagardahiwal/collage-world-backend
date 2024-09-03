@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema } from 'mongoose';
-import { IUser } from './user';
 import Comment from './comment';  // Import Comment model
 import Like from './like'; 
 import Save from './save'; 
