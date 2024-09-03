@@ -1,23 +1,30 @@
 import { Request, Response } from 'express';
-import cloudinary from '../config/cloudinary';  // Import Cloudinary setup
+import cloudinary from '../config/claudinary';  // Import Cloudinary setup
 import Post from '../models/post';
 
-// Create a new post with images
-export const uploadPostImages = async (req: Request, res: Response) => {
+// Create a new post
+export const createPost = async (req: Request, res: Response) => {
   try {
-    const { images } = req.files as { images: Express.Multer.File[] };
+    const { title, content } = req.body;
+    const images = [];
 
-    if (images.length > 6) {
-      return res.status(400).json({ message: 'You can upload up to 6 images only.' });
+    if (req.files) {
+      for (const file of req.files as Express.Multer.File[]) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'posts',
+          resource_type: 'image',
+        });
+        images.push(result.secure_url);
+      }
     }
 
-    const imageUrls = [];
-    for (const image of images) {
-      const result = await cloudinary.uploader.upload(image.path, { folder: 'posts' });
-      imageUrls.push(result.secure_url);
-    }
+    const post = new Post({
+      title,
+      content,
+      images,
+      author: req.body.author, // Assuming author ID is provided in the request body
+    });
 
-    const post = new Post({ title: req.body.title, content: req.body.content, images: imageUrls });
     await post.save();
 
     res.status(201).json(post);
@@ -29,7 +36,7 @@ export const uploadPostImages = async (req: Request, res: Response) => {
 // Get a post by ID
 export const getPostById = async (req: Request, res: Response) => {
   try {
-    const post = await Post.findById(req.params.id);
+    const post = await Post.findById(req.params.id).populate('author');
 
     if (!post) {
       return res.status(404).json({ message: 'Post not found.' });
@@ -44,26 +51,22 @@ export const getPostById = async (req: Request, res: Response) => {
 // Update a post by ID
 export const updatePostById = async (req: Request, res: Response) => {
   try {
+    const updates: any = {};
     const { title, content } = req.body;
-    const updates: { title?: string; content?: string; images?: string[] } = {};
 
     if (title) updates.title = title;
     if (content) updates.content = content;
 
-    // Handle image updates
-    if (req.files && req.files['images']) {
-      const { images } = req.files as { images: Express.Multer.File[] };
-
-      if (images.length > 6) {
-        return res.status(400).json({ message: 'You can upload up to 6 images only.' });
+    if (req.files) {
+      const images = [];
+      for (const file of req.files as Express.Multer.File[]) {
+        const result = await cloudinary.uploader.upload(file.path, {
+          folder: 'posts',
+          resource_type: 'image',
+        });
+        images.push(result.secure_url);
       }
-
-      const imageUrls = [];
-      for (const image of images) {
-        const result = await cloudinary.uploader.upload(image.path, { folder: 'posts' });
-        imageUrls.push(result.secure_url);
-      }
-      updates.images = imageUrls;
+      updates.images = images;
     }
 
     const post = await Post.findByIdAndUpdate(req.params.id, updates, { new: true });
@@ -98,6 +101,41 @@ export const deletePostById = async (req: Request, res: Response) => {
     await post.deleteOne();
 
     res.status(200).json({ message: 'Post deleted successfully.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+// Admin: Get all posts
+export const getAllPosts = async (req: Request, res: Response) => {
+  try {
+    const posts = await Post.find().populate('author');
+    res.status(200).json(posts);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+// Admin: Delete any post
+export const adminDeletePost = async (req: Request, res: Response) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found.' });
+    }
+
+    // Delete associated images from Cloudinary
+    for (const image of post.images) {
+      const publicId = image.split('/').pop()?.split('.').shift(); // Extract public ID from URL
+      if (publicId) {
+        await cloudinary.uploader.destroy(`posts/${publicId}`);
+      }
+    }
+
+    await post.deleteOne();
+
+    res.status(200).json({ message: 'Post deleted successfully by admin.' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
   }

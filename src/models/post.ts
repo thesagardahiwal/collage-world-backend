@@ -7,14 +7,19 @@ import Save from './save';
 export interface IPost extends Document {
   title: string;
   content: string;
-  images: string[];  // Array of image URLs
+  images: string[]; // Array of image URLs
+  author: mongoose.Schema.Types.ObjectId; // Reference to the user
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const PostSchema: Schema = new Schema({
   title: { type: String, required: true },
   content: { type: String, required: true },
-  images: [{ type: String }],  // Array to store image URLs
-});
+  images: [{ type: String }], // Array of image URLs
+  author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+}, { timestamps: true });
+
 
 const Post = mongoose.model<IPost>('Post', PostSchema);
 
