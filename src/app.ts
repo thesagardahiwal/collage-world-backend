@@ -8,13 +8,17 @@ import connectDB from './config/db';
 // Routes
 import authRoutes from './routes/authRoutes';
 import userRoutes from './routes/userRoutes';
+
 import followRoutes from './routes/followRoutes';
 import commentRoutes from './routes/commentRoutes';
 import likeRoutes from './routes/likeRoutes';
 import saveRoutes from './routes/saveRoutes';
+import postRoutes from './routes/postRoutes';
+
 import subjectRoutes from './routes/subjectRoutes';
 import resourceRoutes from './routes/resourceRoutes';
 import educationRoutes from './routes/educationRoutes';
+import eduResourceRoutes from './routes/eduResourceRoutes';  // Import resource routes
 
 
 import http from 'http';
@@ -41,6 +45,8 @@ app.use('/api', saveRoutes);
 app.use('/api', subjectRoutes);
 app.use('/api', resourceRoutes);
 app.use('/api', educationRoutes);
+app.use('/api/posts', postRoutes);
+app.use('/api/eduResources', eduResourceRoutes);
 
 app.use(errorHandler);
 setupSocketIO(server);

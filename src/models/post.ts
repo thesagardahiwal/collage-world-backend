@@ -5,15 +5,15 @@ import Like from './like';
 import Save from './save'; 
 
 export interface IPost extends Document {
-  user: IUser['_id']; // The user who created the post
-  content: string; // The content of the post
-  createdAt: Date;
+  title: string;
+  content: string;
+  images: string[];  // Array of image URLs
 }
 
 const PostSchema: Schema = new Schema({
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  title: { type: String, required: true },
   content: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
+  images: [{ type: String }],  // Array to store image URLs
 });
 
 const Post = mongoose.model<IPost>('Post', PostSchema);

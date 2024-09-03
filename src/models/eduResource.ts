@@ -4,7 +4,8 @@ export interface IResource extends Document {
   title: string;
   description: string;
   subject: mongoose.Types.ObjectId;
-  link: string;
+  fileUrl: string;  // URL of the uploaded file
+  fileType: string;
 }
 
 const ResourceSchema: Schema = new Schema({
@@ -15,7 +16,8 @@ const ResourceSchema: Schema = new Schema({
     ref: 'Subject',
     required: true,
   },
-  link: { type: String, required: true },
+  fileUrl: { type: String, required: true },
+  fileType: { type: String, required: true },
 });
 
 const Resource = mongoose.model<IResource>('Resource', ResourceSchema);
