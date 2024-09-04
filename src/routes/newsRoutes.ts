@@ -4,7 +4,7 @@ import { createNews, getAllNews, getNewsById, updateNewsById, deleteNewsById, ad
 import { isTeacher, isAdmin } from '../middlewares/authMiddleware';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' }); // Configure multer to handle file uploads
+const upload = multer({ dest: 'CollageWorld/' }); // Configure multer to handle file uploads
 
 // Teacher routes
 router.post('/', isTeacher, upload.array('images', 6), createNews); // Teachers can create news with up to 6 images
