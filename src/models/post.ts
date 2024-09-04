@@ -28,16 +28,16 @@ PostSchema.pre('deleteOne', { document: true, query: false }, async function (ne
     const postId = this._id;
 
     // Delete related comments
-    await Comment.deleteMany({ postId });
+    await Comment.deleteMany({ post: postId });
 
     // Delete related likes
-    await Like.deleteMany({ postId });
+    await Like.deleteMany({ post: postId });
 
     // Delete related saves
-    await Save.deleteMany({ postId });
+    await Save.deleteMany({ post: postId });
 
     next();
-  } catch (error) {
+  } catch (error : any) {
     next(error);
   }
 });

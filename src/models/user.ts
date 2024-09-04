@@ -29,6 +29,7 @@ const UserSchema: Schema = new Schema({
     type: Number,
     default: 0, // Default to 0, can be updated based on actions
   },
+  role: { type: String, enum: ['student', 'teacher'], required: true },
 });
 
 UserSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
@@ -36,20 +37,20 @@ UserSchema.pre('deleteOne', { document: true, query: false }, async function (ne
     const userId = this._id;
 
     // Delete related comments
-    await Comment.deleteMany({ userId });
+    await Comment.deleteMany({ user: userId });
 
     // Delete related likes
-    await Like.deleteMany({ userId });
+    await Like.deleteMany({ user: userId });
 
     // Delete related follows
-    await Follow.deleteMany({ followerId: userId });
-    await Follow.deleteMany({ followingId: userId });
+    await Follow.deleteMany({ follower: userId });
+    await Follow.deleteMany({ following: userId });
 
     // Delete related saves
-    await Save.deleteMany({ userId });
+    await Save.deleteMany({ id: userId });
 
     next();
-  } catch (error) {
+  } catch (error : any) {
     next(error);
   }
 });
