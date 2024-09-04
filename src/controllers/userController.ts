@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
+import { uploadFilesToCloudinary as upload } from "../config/claudinary"
 import User from '../models/user';
-import multer from 'multer';
 import mlService from '../services/mlService';
-
-// Configure multer for file uploads
-const upload = multer({ dest: 'uploads/' });
 
 declare global {
   namespace Express {
@@ -14,7 +11,7 @@ declare global {
   }
 }
 
-export const uploadStudentId = [upload.single('studentId'), async (req: Request, res: Response) => {
+export const uploadStudentId = [upload('studentId', 1), async (req: Request, res: Response) => {
   const userId = req.userId;
   try {
     if (!userId) {
@@ -22,13 +19,13 @@ export const uploadStudentId = [upload.single('studentId'), async (req: Request,
     }
   
     // Check if file is present
-    if (!req.file) {
+    if (!req.fileUrls) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const result = await mlService.verifyStudentId(req.file.path);
+    const result = await mlService.verifyStudentId(req.fileUrls[0]);
     const isStudent = result.isStudent;
-    await User.findByIdAndUpdate(userId, { isStudent, studentId: req.file.path });
+    await User.findByIdAndUpdate(userId, { isStudent, studentId: req.fileUrls[0] });
     res.json({ isStudent });
   } catch (err : any) {
     res.status(500).json({ error: err.message });

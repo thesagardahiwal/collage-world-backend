@@ -4,10 +4,11 @@ import bcrypt from 'bcryptjs';
 import generateToken from '../config/auth';
 
 export const registerUser = async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
+  console.log(req.body)
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser : IUser = new User({ name, email, password: hashedPassword });
+    const newUser : IUser = new User({ name, email, password: hashedPassword, role });
     await newUser.save();
     const newUser_id : any = newUser._id
     const token = generateToken(newUser_id.toString());
