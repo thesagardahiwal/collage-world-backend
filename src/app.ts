@@ -20,6 +20,11 @@ import resourceRoutes from './routes/resourceRoutes';
 import educationRoutes from './routes/educationRoutes';
 import eduResourceRoutes from './routes/eduResourceRoutes';  // Import resource routes
 
+import noteRoutes from "./routes/noteRoutes";
+import tipTrickRoutes from "./routes/tipTrickRoutes";
+import newsRoutes from "./routes/newsRoutes";
+import doubtRoutes from "./routes/doubtRoutes";
+import answerRoutes from "./routes/answerRoutes";
 
 import http from 'http';
 import { setupSocketIO } from './sockets/socket';
@@ -47,6 +52,11 @@ app.use('/api', resourceRoutes);
 app.use('/api', educationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/eduResources', eduResourceRoutes);
+app.use('/api/doubts', doubtRoutes);
+app.use('/api/answers', answerRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/tiptricks', tipTrickRoutes);
+app.use('/api', noteRoutes);
 
 app.use(errorHandler);
 setupSocketIO(server);
