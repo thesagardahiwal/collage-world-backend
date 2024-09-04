@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
+import { getLocationOfFile, getResourceTypeFromUrl } from "../utils/helperClaudinary"
 import cloudinary from '../config/claudinary'; // Import Cloudinary setup
 import Resource from '../models/eduResource';
 
 // Upload a new resource
 export const uploadResource = async (req: Request, res: Response) => {
   try {
-    if (!req.file) {
+    if (!req.fileUrls?.length) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
@@ -13,16 +14,11 @@ export const uploadResource = async (req: Request, res: Response) => {
       return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."});
     }
 
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'resources',
-      resource_type: req.file.mimetype.includes('image') ? 'image' : 'raw', // Handle different file types
-    });
-
     const resource = new Resource({
       title: req.body.title,
       description: req.body.description,
-      fileUrl: result.secure_url,
-      resourceType: req.file.mimetype.includes('image') ? 'image' : 'raw',
+      fileUrl: req.fileUrls[0],
+      resourceType: getResourceTypeFromUrl(req.fileUrls[0]),
       uploadedBy: req.user._id, // Assuming `req.user` contains the authenticated user's info
       educationField: req.body.educationField,
       subject: req.body.subject,
@@ -58,14 +54,6 @@ export const updateResourceById = async (req: Request, res: Response) => {
   try {
     const updates: any = {};
     
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        folder: 'resources',
-        resource_type: req.file.mimetype.includes('image') ? 'image' : 'raw',
-      });
-      updates.fileUrl = result.secure_url;
-    }
-    
     if (req.body.title) updates.title = req.body.title;
     if (req.body.description) updates.description = req.body.description;
     if (req.body.educationField) updates.educationField = req.body.educationField;
@@ -95,7 +83,7 @@ export const deleteResourceById = async (req: Request, res: Response) => {
     // Delete associated file from Cloudinary
     const publicId = resource.fileUrl.split('/').pop()?.split('.').shift(); // Extract public ID from URL
     if (publicId) {
-      await cloudinary.uploader.destroy(`resources/${publicId}`);
+      await cloudinary.uploader.destroy(getLocationOfFile(publicId));
     }
 
     await resource.deleteOne();

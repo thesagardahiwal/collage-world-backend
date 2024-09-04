@@ -1,22 +1,13 @@
 import { Request, Response } from 'express';
 import cloudinary from '../config/claudinary';  // Import Cloudinary setup
 import Post from '../models/post';
+import { getLocationOfFile } from '../utils/helperClaudinary';
 
 // Create a new post
 export const createPost = async (req: Request, res: Response) => {
   try {
     const { title, content } = req.body;
-    const images = [];
-
-    if (req.files) {
-      for (const file of req.files as Express.Multer.File[]) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'posts',
-          resource_type: 'image',
-        });
-        images.push(result.secure_url);
-      }
-    }
+    const images = req.fileUrls || [];
 
     const post = new Post({
       title,
@@ -56,17 +47,14 @@ export const updatePostById = async (req: Request, res: Response) => {
 
     if (title) updates.title = title;
     if (content) updates.content = content;
-
-    if (req.files) {
-      const images = [];
-      for (const file of req.files as Express.Multer.File[]) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'posts',
-          resource_type: 'image',
-        });
-        images.push(result.secure_url);
+    if (req.fileUrls?.length) {
+      const images = []
+      for (let file of req.fileUrls) {
+          images.push( req.fileUrls);
       }
-      updates.images = images;
+      if (images.length > 0) {
+        updates.images = images;
+      }
     }
 
     const post = await Post.findByIdAndUpdate(req.params.id, updates, { new: true });
@@ -129,7 +117,7 @@ export const adminDeletePost = async (req: Request, res: Response) => {
     for (const image of post.images) {
       const publicId = image.split('/').pop()?.split('.').shift(); // Extract public ID from URL
       if (publicId) {
-        await cloudinary.uploader.destroy(`posts/${publicId}`);
+        await cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
     }
 

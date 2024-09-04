@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import cloudinary from '../config/claudinary'; // Import Cloudinary setup
 import Doubt from '../models/doubt';
-import Answer from '../models/answer';
+import { getLocationOfFile } from '../utils/helperClaudinary';
 
 // Create a new doubt
 export const createDoubt = async (req: Request, res: Response) => {
@@ -9,13 +9,8 @@ export const createDoubt = async (req: Request, res: Response) => {
     if (!req.user) {
       return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
     }
-    const result = req.files ? await Promise.all(
-      (req.files as Express.Multer.File[]).map((file) => 
-        cloudinary.uploader.upload(file.path, { folder: 'doubts' })
-      )
-    ) : [];
 
-    const images = result.map((r) => r.secure_url);
+    const images = req.fileUrls || [];
 
     const doubt = new Doubt({
       title: req.body.title,
@@ -69,6 +64,7 @@ export const deleteDoubtById = async (req: Request, res: Response) => {
         if (publicId) {
           return cloudinary.uploader.destroy(`doubts/${publicId}`);
         }
+        return Promise.resolve(null);
       })
     );
 
@@ -92,8 +88,9 @@ export const adminDeleteDoubtById = async (req: Request, res: Response) => {
         doubt.images.map((image) => {
           const publicId = image.split('/').pop()?.split('.').shift();
           if (publicId) {
-            return cloudinary.uploader.destroy(`doubts/${publicId}`);
-          }
+            return cloudinary.uploader.destroy(getLocationOfFile(publicId));
+          };
+          return Promise.resolve(null);
         })
       );
   

@@ -1,13 +1,12 @@
 import express from 'express';
+import { uploadFilesToCloudinary as upload } from "../config/claudinary"
 import { createNote, getAllNotes, getNoteById, updateNoteById, deleteNoteById } from '../controllers/noteController';
 import { isAuthenticated } from '../middlewares/authMiddleware'; // Middleware to check if user is authenticated
 
 const router = express.Router();
-const multer = require('multer');
-const upload = multer({ dest: 'uploads/' }); // Configure multer for file uploads
 
 // Create a new note
-router.post('/notes', isAuthenticated, upload.array('attachments'), createNote);
+router.post('/notes', isAuthenticated, upload('attachments', 6), createNote);
 
 // Get all notes
 router.get('/notes', getAllNotes);
@@ -16,7 +15,7 @@ router.get('/notes', getAllNotes);
 router.get('/notes/:id', getNoteById);
 
 // Update a note by ID
-router.put('/notes/:id', isAuthenticated, upload.array('attachments'), updateNoteById);
+router.put('/notes/:id', isAuthenticated, upload('attachments', 6), updateNoteById);
 
 // Delete a note by ID
 router.delete('/notes/:id', isAuthenticated, deleteNoteById);

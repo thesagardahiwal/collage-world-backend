@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import cloudinary from '../config/claudinary'; // Import Cloudinary setup
 import Answer from '../models/answer';
 import Doubt from '../models/doubt';
+import { getLocationOfFile } from '../utils/helperClaudinary';
 
 // Post a new answer
 export const postAnswer = async (req: Request, res: Response) => {
@@ -11,13 +12,7 @@ export const postAnswer = async (req: Request, res: Response) => {
       return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
     }
 
-    const result = req.files ? await Promise.all(
-      (req.files as Express.Multer.File[]).map((file) => 
-        cloudinary.uploader.upload(file.path, { folder: 'answers' })
-      )
-    ) : [];
-
-    const images = result.map((r) => r.secure_url);
+    const images = req.fileUrls;
 
     const answer = new Answer({
       doubt: req.body.doubt,
@@ -52,13 +47,8 @@ export const updateAnswerById = async (req: Request, res: Response) => {
   try {
     const updates: any = {};
 
-    if (req.files) {
-      const result = await Promise.all(
-        (req.files as Express.Multer.File[]).map((file) => 
-          cloudinary.uploader.upload(file.path, { folder: 'answers' })
-        )
-      );
-      updates.images = result.map((r) => r.secure_url);
+    if (req.fileUrls) {
+      updates.images = req.fileUrls;
     }
 
     if (req.body.content) updates.content = req.body.content;
@@ -116,7 +106,7 @@ export const adminDeleteAnswerById = async (req: Request, res: Response) => {
         answer.images.map((image) => {
           const publicId = image.split('/').pop()?.split('.').shift();
           if (publicId) {
-            return cloudinary.uploader.destroy(`answers/${publicId}`);
+            return cloudinary.uploader.destroy(getLocationOfFile(publicId));
           }
         })
       );

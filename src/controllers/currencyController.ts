@@ -13,7 +13,7 @@ export const addCurrency = async (req: Request, res: Response) => {
     user.inAppCurrency += amount;
     await user.save();
     res.status(200).json({ message: 'Currency added successfully', inAppCurrency: user.inAppCurrency });
-  } catch (error) {
+  } catch (error : any) {
     res.status(500).json({ message: error.message });
   }
 };
@@ -32,7 +32,7 @@ export const deductCurrency = async (req: Request, res: Response) => {
     user.inAppCurrency -= amount;
     await user.save();
     res.status(200).json({ message: 'Currency deducted successfully', inAppCurrency: user.inAppCurrency });
-  } catch (error) {
+  } catch (error : any) {
     res.status(500).json({ message: error.message });
   }
 };

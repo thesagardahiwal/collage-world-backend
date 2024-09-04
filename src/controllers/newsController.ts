@@ -7,17 +7,9 @@ import { IUser } from '../models/user';
 export const createNews = async (req: Request, res: Response) => {
   try {
     const { title, content } = req.body;
-    const images: string[] = [];
+    const images: string[] = req.fileUrls || [];
 
-    if (req.files) {
-      for (const file of req.files as Express.Multer.File[]) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'news',
-          resource_type: 'image',
-        });
-        images.push(result.secure_url);
-      }
-    }
+
 
     if(!req.user) {
       return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
@@ -69,14 +61,10 @@ export const updateNewsById = async (req: Request, res: Response) => {
     const { title, content } = req.body;
     const updates: any = { title, content };
 
-    if (req.files) {
+    if (req.fileUrls) {
       const images: string[] = [];
-      for (const file of req.files as Express.Multer.File[]) {
-        const result = await cloudinary.uploader.upload(file.path, {
-          folder: 'news',
-          resource_type: 'image',
-        });
-        images.push(result.secure_url);
+      for (const file of req.fileUrls) {
+        images.push(file);
       }
       updates.images = images;
     }

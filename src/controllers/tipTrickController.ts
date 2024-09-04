@@ -8,7 +8,7 @@ export const createTipTrick = async (req: Request, res: Response) => {
   try {
     let imageUrls: string[] = [];
 
-    if (req.files) {
+    if (req.fileUrls) {
       const images = req.files as Express.Multer.File[];
       const uploadPromises = images.map((file) => {
         return cloudinary.uploader.upload(file.path, {
@@ -65,7 +65,7 @@ export const updateTipTrickById = async (req: Request, res: Response) => {
     if (req.body.description) updates.description = req.body.description;
     if (req.body.topic) updates.topic = req.body.topic;
 
-    if (req.files) {
+    if (req.fileUrls) {
       const images = req.files as Express.Multer.File[];
       const uploadPromises = images.map((file) => {
         return cloudinary.uploader.upload(file.path, {

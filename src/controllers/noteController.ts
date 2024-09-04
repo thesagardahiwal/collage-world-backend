@@ -1,12 +1,8 @@
 import { Request, Response } from 'express';
 import cloudinary from '../config/claudinary'; // Import Cloudinary setup
 import Note from '../models/note';
+import { getLocationOfFile } from '../utils/helperClaudinary';
 
-// Helper functions for uploading files to Cloudinary
-const uploadFile = async (file: Express.Multer.File, folder: string) => {
-  const result = await cloudinary.uploader.upload(file.path, { folder });
-  return result.secure_url;
-};
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => {
@@ -21,16 +17,14 @@ export const createNote = async (req: Request, res: Response) => {
     let imageUrls: string[] = [];
     let documentUrls: string[] = [];
 
-    if (req.files) {
-      const files = req.files as Express.Multer.File[];
-
-      // Separate files into images and documents
-      const imageFiles = files.filter(file => file.mimetype.startsWith('image/'));
-      const documentFiles = files.filter(file => !file.mimetype.startsWith('image/'));
-
-      // Upload images and documents
-      imageUrls = await Promise.all(imageFiles.map(file => uploadFile(file, 'notes/images')));
-      documentUrls = await Promise.all(documentFiles.map(file => uploadFile(file, 'notes/documents')));
+    if (req.fileUrls?.length) {
+      for (let file of req.fileUrls) {
+        if (file.includes("jpg") || file.includes("jpeg")) {
+          imageUrls.push(file);
+        } else {
+          documentUrls.push(file);
+        }
+      }
     }
 
     const note = new Note({
@@ -79,23 +73,12 @@ export const updateNoteById = async (req: Request, res: Response) => {
     const { title, content } = req.body;
     const updates: any = { title, content };
 
-    if (req.files) {
-      const files = req.files as Express.Multer.File[];
-      let imageUrls: string[] = [];
-      let documentUrls: string[] = [];
-
-      // Separate files into images and documents
-      const imageFiles = files.filter(file => file.mimetype.startsWith('image/'));
-      const documentFiles = files.filter(file => !file.mimetype.startsWith('image/'));
-
-      // Upload images and documents
-      imageUrls = await Promise.all(imageFiles.map(file => uploadFile(file, 'notes/images')));
-      documentUrls = await Promise.all(documentFiles.map(file => uploadFile(file, 'notes/documents')));
-
-      updates.attachments = {
-        imageUrls,
-        documentUrls,
-      };
+    if (req.fileUrls) {
+      const images: string[] = [];
+      for (const file of req.fileUrls) {
+        images.push(file);
+      }
+      updates.images = images;
     }
 
     const note = await Note.findByIdAndUpdate(req.params.id, updates, { new: true }).populate('createdBy');
@@ -120,7 +103,7 @@ export const deleteNoteById = async (req: Request, res: Response) => {
     const deleteImagePromises = note.attachments?.imageUrls?.map(image => {
       const publicId = image.split('/').pop()?.split('.').shift();
       if (publicId) {
-        return cloudinary.uploader.destroy(`notes/images/${publicId}`);
+        return cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
       return Promise.resolve(); // Handle cases where publicId is undefined
     }).filter(promise => promise !== undefined) as Promise<any>[];
@@ -128,7 +111,7 @@ export const deleteNoteById = async (req: Request, res: Response) => {
     const deleteDocumentPromises = note.attachments?.documentUrls?.map(doc => {
       const publicId = doc.split('/').pop()?.split('.').shift();
       if (publicId) {
-        return cloudinary.uploader.destroy(`notes/documents/${publicId}`);
+        return cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
       return Promise.resolve(); // Handle cases where publicId is undefined
     }).filter(promise => promise !== undefined) as Promise<any>[];

@@ -1,14 +1,14 @@
 import express from 'express';
-import multer from 'multer';
+import {uploadFilesToCloudinary} from "../config/claudinary"
 import { createTipTrick, getAllTipsTricks, getTipTrickById, updateTipTrickById, deleteTipTrickById, adminGetAllTipsTricks, adminDeleteTipTrickById } from '../controllers/tipTrickController';
 import { isAuthenticated } from '../middlewares/authMiddleware';
 import { isAdmin } from '../middlewares/authMiddleware';
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' }); // Adjust as needed
+const upload =  uploadFilesToCloudinary// Adjust as needed
 
 // Create a new tip or trick
-router.post('/', isAuthenticated, upload.array('images', 5), createTipTrick);
+router.post('/', isAuthenticated, upload('images', 5), createTipTrick);
 
 // Get all tips and tricks
 router.get('/', getAllTipsTricks);
@@ -17,7 +17,7 @@ router.get('/', getAllTipsTricks);
 router.get('/:id', getTipTrickById);
 
 // Update a tip or trick by ID
-router.put('/:id', isAuthenticated, upload.array('images', 5), updateTipTrickById);
+router.put('/:id', isAuthenticated, upload('images', 5), updateTipTrickById);
 
 // Delete a tip or trick by ID
 router.delete("/:id", isAuthenticated, deleteTipTrickById);
