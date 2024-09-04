@@ -6,7 +6,11 @@ import Post from '../models/post';
 export const createComment = async (req: Request, res: Response) => {
   try {
     const { postId, content } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(500).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
 
     const post = await Post.findById(postId);
     if (!post) {
@@ -31,7 +35,11 @@ export const createComment = async (req: Request, res: Response) => {
 export const updateComment = async (req: Request, res: Response) => {
   try {
     const { commentId, content } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(500).json({message: "User not found!"})
+    }
 
     const comment = await Comment.findOneAndUpdate(
       { _id: commentId, user: userId },
@@ -53,7 +61,11 @@ export const updateComment = async (req: Request, res: Response) => {
 export const deleteComment = async (req: Request, res: Response) => {
   try {
     const { commentId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(500).json({message: "User not found!"})
+    }
 
     const comment = await Comment.findOneAndDelete({ _id: commentId, user: userId });
 

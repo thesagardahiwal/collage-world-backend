@@ -13,6 +13,7 @@ export interface IUser extends Document {
   studentId?: string;
   educationField?: mongoose.Types.ObjectId; // Reference to the EducationField model
   inAppCurrency: number;
+  role: string;
 }
 
 const UserSchema: Schema = new Schema({

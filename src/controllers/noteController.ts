@@ -12,7 +12,11 @@ const uploadFile = async (file: Express.Multer.File, folder: string) => {
 export const createNote = async (req: Request, res: Response) => {
   try {
     const { title, content } = req.body;
-    const createdBy = req.user._id; // Assuming `req.user` contains authenticated user information
+    const createdBy = req.user?._id; // Assuming `req.user` contains authenticated user information
+
+    if (!createdBy) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
 
     let imageUrls: string[] = [];
     let documentUrls: string[] = [];

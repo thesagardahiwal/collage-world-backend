@@ -6,7 +6,11 @@ import Post from '../models/post';
 export const likePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
 
     const post = await Post.findById(postId);
     if (!post) {
@@ -35,7 +39,11 @@ export const likePost = async (req: Request, res: Response) => {
 export const unlikePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
 
     const like = await Like.findOneAndDelete({ post: postId, user: userId });
 

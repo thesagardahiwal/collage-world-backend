@@ -6,6 +6,9 @@ import Answer from '../models/answer';
 // Create a new doubt
 export const createDoubt = async (req: Request, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
     const result = req.files ? await Promise.all(
       (req.files as Express.Multer.File[]).map((file) => 
         cloudinary.uploader.upload(file.path, { folder: 'doubts' })

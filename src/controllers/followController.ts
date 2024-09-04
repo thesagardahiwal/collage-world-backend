@@ -5,7 +5,11 @@ import Follow from '../models/follow';
 export const followUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body; // The user to follow
-    const followerId = req.user._id; // The user who is following
+    const followerId = req.user?._id; // The user who is following
+
+    if (!followerId) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."});
+    }
 
     if (userId === followerId.toString()) {
       return res.status(400).json({ message: "You cannot follow yourself" });
@@ -33,7 +37,11 @@ export const followUser = async (req: Request, res: Response) => {
 export const unfollowUser = async (req: Request, res: Response) => {
   try {
     const { userId } = req.body; // The user to unfollow
-    const followerId = req.user._id; // The user who is unfollowing
+    const followerId = req.user?._id; // The user who is unfollowing
+
+    if (!followerId) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."});
+    }
 
     const follow = await Follow.findOneAndDelete({ follower: followerId, following: userId });
 

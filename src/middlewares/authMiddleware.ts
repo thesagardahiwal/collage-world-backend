@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
+import { JwtPayload } from '../types/jwt';
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -10,7 +11,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     req.user = decoded;
     next();
   } catch (err) {
@@ -21,7 +22,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 // Middleware to check if the user is a teacher
 export const isTeacher = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user?._id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
@@ -39,7 +40,7 @@ export const isTeacher = async (req: Request, res: Response, next: NextFunction)
 
 export const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user?._id);
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });

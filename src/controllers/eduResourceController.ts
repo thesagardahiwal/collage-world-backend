@@ -9,6 +9,10 @@ export const uploadResource = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
+    if (!req.user) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."});
+    }
+
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'resources',
       resource_type: req.file.mimetype.includes('image') ? 'image' : 'raw', // Handle different file types

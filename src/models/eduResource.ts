@@ -52,6 +52,6 @@ ResourceSchema.pre<IResource>('save', function (next) {
   next();
 });
 
-const Resource = mongoose.model<IResource>('Resource', ResourceSchema);
+const Resource = mongoose.models.Resource || mongoose.model<IResource>('Resource', ResourceSchema);
 
 export default Resource;

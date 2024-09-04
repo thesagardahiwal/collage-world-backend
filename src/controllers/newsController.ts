@@ -19,6 +19,10 @@ export const createNews = async (req: Request, res: Response) => {
       }
     }
 
+    if(!req.user) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
+
     const news = new News({
       title,
       content,

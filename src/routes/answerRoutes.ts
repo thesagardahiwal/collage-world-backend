@@ -1,7 +1,7 @@
 import express from 'express';
 import { postAnswer, getAnswersByDoubtId, updateAnswerById, deleteAnswerById, adminDeleteAnswerById } from '../controllers/answerController';
-import { isAuthenticated } from '../middleware/authMiddleware';
-import { isAdmin } from '../middleware/adminMiddleware'; // Import the admin middleware
+import { isAuthenticated } from '../middlewares/authMiddleware';
+import { isAdmin } from '../middlewares/authMiddleware'; // Import the admin middleware
 import multer from 'multer';
 
 const router = express.Router();

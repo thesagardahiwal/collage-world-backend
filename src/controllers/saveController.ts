@@ -6,7 +6,11 @@ import Post from '../models/post';
 export const savePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(500).json({message: "User not found!"})
+    }
 
     const post = await Post.findById(postId);
     if (!post) {
@@ -35,7 +39,11 @@ export const savePost = async (req: Request, res: Response) => {
 export const unsavePost = async (req: Request, res: Response) => {
   try {
     const { postId } = req.body;
-    const userId = req.user._id;
+    const userId = req.user?._id;
+
+    if(!userId) {
+      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    }
 
     const save = await Save.findOneAndDelete({ post: postId, user: userId });
 
