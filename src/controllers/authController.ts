@@ -12,7 +12,7 @@ export const registerUser = async (req: Request, res: Response) => {
     await newUser.save();
     const newUser_id : any = newUser._id
     const token = generateToken(newUser_id.toString());
-    res.status(201).json({ token });
+    res.status(201).json({ token, user: newUser});
   } catch (err : any) {
     res.status(500).json({ error: err.message });
   }
@@ -26,7 +26,7 @@ export const loginUser = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
     const token = generateToken(user._id.toString());
-    res.json({ token });
+    res.status(201).json({ token, user: user});
   } catch (err : any) {
     res.status(500).json({ error: err.message });
   }
