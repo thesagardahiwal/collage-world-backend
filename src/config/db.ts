@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    const MONGODB_URL : string = process.env.MONGODB_URL || "mongodb://localhost:27017/collage-world"
+    const MONGODB_URL : any = process.env.MONGODB_URL
     await mongoose.connect(MONGODB_URL);
     console.log('MongoDB connected');
   } catch (err : any) {

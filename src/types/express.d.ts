@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { IUser } from '../models/user';
 
 declare global {
   namespace Express {
@@ -6,10 +7,10 @@ declare global {
       fileUrl?: string;
       fileUrls?: string[];
       userId?: string;
-      user?: {
-        _id: string ; // Adjust type if necessary
-        [key: string ]: any; // To accommodate other user properties
-      };
+      user?: IUser & { _id: string };
+      User?:  {
+        _id: string;
+      }
     }
   }
 }

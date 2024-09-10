@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Follow from '../models/follow';
 
+
 // Follow a user
 export const followUser = async (req: Request, res: Response) => {
   try {

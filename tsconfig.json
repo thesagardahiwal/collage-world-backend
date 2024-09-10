@@ -14,6 +14,6 @@
       "src/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/types/*"],
   "exclude": ["node_modules"]
 }
