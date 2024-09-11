@@ -9,7 +9,6 @@ export const createNote = async (req: Request, res: Response) => {
   try {
     const { title, content } = req.body;
     const createdBy = req.user?._id; // Assuming `req.user` contains authenticated user information
-
     if (!createdBy) {
       return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
     }
@@ -36,6 +35,7 @@ export const createNote = async (req: Request, res: Response) => {
       },
       createdBy,
     });
+    console.log(note)
 
     await note.save();
     res.status(201).json(note);
@@ -47,7 +47,7 @@ export const createNote = async (req: Request, res: Response) => {
 // Get all notes
 export const getAllNotes = async (req: Request, res: Response) => {
   try {
-    const notes = await Note.find().populate('createdBy');
+    const notes = await Note.find();
     res.status(200).json(notes);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -81,7 +81,7 @@ export const updateNoteById = async (req: Request, res: Response) => {
       updates.images = images;
     }
 
-    const note = await Note.findByIdAndUpdate(req.params.id, updates, { new: true }).populate('createdBy');
+    const note = await Note.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!note) {
       return res.status(404).json({ message: 'Note not found.' });
     }

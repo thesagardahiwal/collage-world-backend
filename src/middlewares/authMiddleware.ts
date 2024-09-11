@@ -1,18 +1,22 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/user';
+import User from '../models/user';
+import { JwtPayload } from 'src/types/jwt';
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+  console.log(req.headers);
   const token = req.header('Authorization')?.replace('Bearer ', '');
+  console.log(token);
 
   if (!token) {
     return res.status(401).json({ message: 'No token provided, authorization denied' });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as IUser & { _id: string };
-    req.user = decoded;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    console.log(decoded);
+    req.user = {_id : decoded.id};
     next();
   } catch (err) {
     res.status(401).json({ message: 'Token is not valid' });

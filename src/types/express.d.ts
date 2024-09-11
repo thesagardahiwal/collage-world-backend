@@ -7,7 +7,7 @@ declare global {
       fileUrl?: string;
       fileUrls?: string[];
       userId?: string;
-      user?: IUser & { _id: string };
+      user?: { _id: string };
       User?:  {
         _id: string;
       }

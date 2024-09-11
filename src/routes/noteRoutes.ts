@@ -15,7 +15,7 @@ router.get('/notes', getAllNotes);
 router.get('/notes/:id', getNoteById);
 
 // Update a note by ID
-router.put('/notes/:id', isAuthenticated, upload('attachments', 6), updateNoteById);
+router.post('/notes/:id', isAuthenticated, upload('attachments', 6), updateNoteById);
 
 // Delete a note by ID
 router.delete('/notes/:id', isAuthenticated, deleteNoteById);

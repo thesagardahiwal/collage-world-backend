@@ -11,6 +11,8 @@ export interface IUser extends Document {
   password: string;
   isStudent: boolean;
   studentId?: string;
+  profilePhoto?: string;
+  backgrountPhoto?: string;
   educationField?: mongoose.Types.ObjectId; // Reference to the EducationField model
   inAppCurrency: number;
   role: string;
@@ -21,6 +23,8 @@ const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   isStudent: { type: Boolean, default: false },
+  profilePhoto: { type: String },
+  backgrountPhoto: { type: String },
   studentId: { type: String },
   educationField: {
     type: Schema.Types.ObjectId,
