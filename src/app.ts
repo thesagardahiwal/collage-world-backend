@@ -48,7 +48,7 @@ app.use('/api', commentRoutes);
 app.use('/api', likeRoutes);
 app.use('/api', saveRoutes);
 app.use('/api', subjectRoutes);
-app.use('/api', resourceRoutes);
+app.use('/api/resource', resourceRoutes);
 app.use('/api', educationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/eduResources', eduResourceRoutes);
