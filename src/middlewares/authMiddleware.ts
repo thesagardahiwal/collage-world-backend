@@ -5,17 +5,12 @@ import { JwtPayload } from 'src/types/jwt';
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  console.log(req.headers);
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  console.log(token);
-
   if (!token) {
     return res.status(401).json({ message: 'No token provided, authorization denied' });
   }
-
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
-    console.log(decoded);
     req.user = {_id : decoded.id};
     next();
   } catch (err) {

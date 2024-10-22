@@ -35,7 +35,6 @@ export const createNote = async (req: Request, res: Response) => {
       },
       createdBy,
     });
-    console.log(note)
 
     await note.save();
     res.status(201).json(note);
@@ -47,7 +46,11 @@ export const createNote = async (req: Request, res: Response) => {
 // Get all notes
 export const getAllNotes = async (req: Request, res: Response) => {
   try {
-    const notes = await Note.find();
+    const user = req.user?._id;
+    if(!user) {
+      return res.status(401).json({message: "User is not valid!"});
+    }
+    const notes = await Note.find({createdBy: user});
     res.status(200).json(notes);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -57,7 +60,7 @@ export const getAllNotes = async (req: Request, res: Response) => {
 // Get a note by ID
 export const getNoteById = async (req: Request, res: Response) => {
   try {
-    const note = await Note.findById(req.params.id).populate('createdBy');
+    const note = await Note.findById(req.params.id);
     if (!note) {
       return res.status(404).json({ message: 'Note not found.' });
     }

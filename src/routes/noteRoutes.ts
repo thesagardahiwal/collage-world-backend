@@ -9,10 +9,10 @@ const router = express.Router();
 router.post('/notes', isAuthenticated, upload('attachments', 6), createNote);
 
 // Get all notes
-router.get('/notes', getAllNotes);
+router.get('/notes',isAuthenticated,  getAllNotes);
 
 // Get a note by ID
-router.get('/notes/:id', getNoteById);
+router.get('/notes/:id',isAuthenticated,  getNoteById);
 
 // Update a note by ID
 router.post('/notes/:id', isAuthenticated, upload('attachments', 6), updateNoteById);

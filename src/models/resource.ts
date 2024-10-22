@@ -6,6 +6,7 @@ export interface IResource extends Document {
   examType: string;
   resourceType: string;
   content: string;
+  author: mongoose.Schema.Types.ObjectId;
 }
 
 const ResourceSchema: Schema = new Schema({
@@ -14,6 +15,7 @@ const ResourceSchema: Schema = new Schema({
   examType: { type: String, required: true },
   resourceType: { type: String, required: true },
   content: { type: String, required: true },
+  author: {type: Schema.Types.ObjectId, ref: 'User', required: true}
 });
 
 const Resource = mongoose.model<IResource>('Resource', ResourceSchema);
