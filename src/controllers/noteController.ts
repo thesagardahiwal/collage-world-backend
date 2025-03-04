@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
-import cloudinary from '../config/claudinary'; // Import Cloudinary setup
+import cloudinary from '../config/claudinary';
 import Note from '../models/note';
 import { getLocationOfFile } from '../utils/helperClaudinary';
-
+import { sendResponse } from '../utils/helper';
 
 // Create a new note
 export const createNote = async (req: Request, res: Response) => {
   try {
     const { title, content } = req.body;
-    const createdBy = req.user?._id; // Assuming `req.user` contains authenticated user information
+    const createdBy = req.user?._id;
     if (!createdBy) {
-      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+      return sendResponse(res, false, 401, "Unauthorized access. Please provide valid authentication credentials.");
     }
 
     let imageUrls: string[] = [];
@@ -29,17 +29,14 @@ export const createNote = async (req: Request, res: Response) => {
     const note = new Note({
       title,
       content,
-      attachments: {
-        imageUrls,
-        documentUrls,
-      },
+      attachments: { imageUrls, documentUrls },
       createdBy,
     });
 
     await note.save();
-    res.status(201).json(note);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 201, "Note created successfully", note);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -47,13 +44,13 @@ export const createNote = async (req: Request, res: Response) => {
 export const getAllNotes = async (req: Request, res: Response) => {
   try {
     const user = req.user?._id;
-    if(!user) {
-      return res.status(401).json({message: "User is not valid!"});
+    if (!user) {
+      return sendResponse(res, false, 401, "User is not valid!");
     }
-    const notes = await Note.find({createdBy: user});
-    res.status(200).json(notes);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    const notes = await Note.find({ createdBy: user });
+    return sendResponse(res, true, 200, "Notes retrieved successfully", notes);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -62,11 +59,11 @@ export const getNoteById = async (req: Request, res: Response) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) {
-      return res.status(404).json({ message: 'Note not found.' });
+      return sendResponse(res, false, 404, "Note not found");
     }
-    res.status(200).json(note);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Note retrieved successfully", note);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -77,20 +74,23 @@ export const updateNoteById = async (req: Request, res: Response) => {
     const updates: any = { title, content };
 
     if (req.fileUrls) {
-      const images: string[] = [];
+      updates.attachments = { imageUrls: [], documentUrls: [] };
       for (const file of req.fileUrls) {
-        images.push(file);
+        if (file.includes("jpg") || file.includes("jpeg")) {
+          updates.attachments.imageUrls.push(file);
+        } else {
+          updates.attachments.documentUrls.push(file);
+        }
       }
-      updates.images = images;
     }
 
     const note = await Note.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!note) {
-      return res.status(404).json({ message: 'Note not found.' });
+      return sendResponse(res, false, 404, "Note not found");
     }
-    res.status(200).json(note);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Note updated successfully", note);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -99,31 +99,29 @@ export const deleteNoteById = async (req: Request, res: Response) => {
   try {
     const note = await Note.findById(req.params.id);
     if (!note) {
-      return res.status(404).json({ message: 'Note not found.' });
+      return sendResponse(res, false, 404, "Note not found");
     }
 
-    // Delete associated images and documents from Cloudinary
     const deleteImagePromises = note.attachments?.imageUrls?.map(image => {
       const publicId = image.split('/').pop()?.split('.').shift();
       if (publicId) {
         return cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
-      return Promise.resolve(); // Handle cases where publicId is undefined
-    }).filter(promise => promise !== undefined) as Promise<any>[];
+      return Promise.resolve();
+    }) ?? [];
 
     const deleteDocumentPromises = note.attachments?.documentUrls?.map(doc => {
       const publicId = doc.split('/').pop()?.split('.').shift();
       if (publicId) {
         return cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
-      return Promise.resolve(); // Handle cases where publicId is undefined
-    }).filter(promise => promise !== undefined) as Promise<any>[];
+      return Promise.resolve();
+    }) ?? [];
 
     await Promise.all([...deleteImagePromises, ...deleteDocumentPromises]);
-
     await note.deleteOne();
-    res.status(200).json({ message: 'Note deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Note deleted successfully");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createComment, updateComment, deleteComment } from '../controllers/commentController';
+import { createComment, updateComment, deleteComment, getCommentById } from '../controllers/commentController';
 import { isAuthenticated } from '../middlewares/authMiddleware';
 
 const router = Router();
@@ -7,6 +7,7 @@ const router = Router();
 // Route to create a new comment
 router.post('/comment', isAuthenticated, createComment);
 
+router.get('/comment/:id', getCommentById);
 // Route to update an existing comment
 router.put('/comment', isAuthenticated, updateComment);
 

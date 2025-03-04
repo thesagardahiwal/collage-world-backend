@@ -6,9 +6,11 @@ import { JwtPayload } from 'src/types/jwt';
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
+
   if (!token) {
     return res.status(401).json({ message: 'No token provided, authorization denied' });
   }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     req.user = {_id : decoded.id};
@@ -28,10 +30,6 @@ export const isTeacher = async (req: Request, res: Response, next: NextFunction)
 
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
-    }
-
-    if (user.role = "teacher") {
-      return next(); // User is a teacher, proceed to the next middleware
     }
 
     return res.status(403).json({ message: 'Access denied. Only teachers can perform this action.' });

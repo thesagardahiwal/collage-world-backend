@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "module": "commonjs",
+    "module": "CommonJS",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
@@ -12,8 +12,8 @@
     "typeRoots": ["./src/types", "./node_modules/@types"],
     "paths": {
       "src/*": ["./src/*"]
-    }
+    },
   },
-  "include": ["src/**/*.ts", "src/types/*"],
+  "include": ["src/**/*.ts", "src/types/*", "src/seed.ts"],
   "exclude": ["node_modules"]
 }

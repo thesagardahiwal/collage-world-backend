@@ -1,36 +1,22 @@
 import { Request, Response } from 'express';
-import cloudinary from '../config/claudinary'; // Import Cloudinary setup
 import TipTrick from '../models/tipTrick';
-import multer from 'multer';
+import cloudinary from '../config/claudinary';
+import { sendResponse } from '../utils/helper';
 
 // Upload a new tip or trick
 export const createTipTrick = async (req: Request, res: Response) => {
   try {
     let imageUrls: string[] = [];
-
-    if (req.fileUrls) {
+    if (req.files) {
       const images = req.files as Express.Multer.File[];
-      const uploadPromises = images.map((file) => {
-        return cloudinary.uploader.upload(file.path, {
-          folder: 'tips_tricks',
-          resource_type: 'image'
-        }).then((result) => result.secure_url);
-      });
-
+      const uploadPromises = images.map(file => cloudinary.uploader.upload(file.path, { folder: 'tips_tricks' }).then(result => result.secure_url));
       imageUrls = await Promise.all(uploadPromises);
     }
-
-    const tipTrick = new TipTrick({
-      title: req.body.title,
-      description: req.body.description,
-      topic: req.body.topic,
-      imageUrls
-    });
-
+    const tipTrick = new TipTrick({ title: req.body.title, description: req.body.description, topic: req.body.topic, imageUrls });
     await tipTrick.save();
-    res.status(201).json(tipTrick);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 201, 'Tip or trick created successfully', tipTrick);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
@@ -38,9 +24,9 @@ export const createTipTrick = async (req: Request, res: Response) => {
 export const getAllTipsTricks = async (req: Request, res: Response) => {
   try {
     const tipsTricks = await TipTrick.find();
-    res.status(200).json(tipsTricks);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Tips and tricks retrieved successfully', tipsTricks);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
@@ -49,11 +35,11 @@ export const getTipTrickById = async (req: Request, res: Response) => {
   try {
     const tipTrick = await TipTrick.findById(req.params.id);
     if (!tipTrick) {
-      return res.status(404).json({ message: 'Tip or trick not found.' });
+      return sendResponse(res, false, 404, 'Tip or trick not found');
     }
-    res.status(200).json(tipTrick);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Tip or trick retrieved successfully', tipTrick);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
@@ -65,25 +51,19 @@ export const updateTipTrickById = async (req: Request, res: Response) => {
     if (req.body.description) updates.description = req.body.description;
     if (req.body.topic) updates.topic = req.body.topic;
 
-    if (req.fileUrls) {
+    if (req.files) {
       const images = req.files as Express.Multer.File[];
-      const uploadPromises = images.map((file) => {
-        return cloudinary.uploader.upload(file.path, {
-          folder: 'tips_tricks',
-          resource_type: 'image'
-        }).then((result) => result.secure_url);
-      });
-
+      const uploadPromises = images.map(file => cloudinary.uploader.upload(file.path, { folder: 'tips_tricks' }).then(result => result.secure_url));
       updates.imageUrls = await Promise.all(uploadPromises);
     }
 
     const tipTrick = await TipTrick.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!tipTrick) {
-      return res.status(404).json({ message: 'Tip or trick not found.' });
+      return sendResponse(res, false, 404, 'Tip or trick not found');
     }
-    res.status(200).json(tipTrick);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Tip or trick updated successfully', tipTrick);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
@@ -92,34 +72,28 @@ export const deleteTipTrickById = async (req: Request, res: Response) => {
   try {
     const tipTrick = await TipTrick.findById(req.params.id);
     if (!tipTrick) {
-      return res.status(404).json({ message: 'Tip or trick not found.' });
+      return sendResponse(res, false, 404, 'Tip or trick not found');
     }
 
-    // Delete associated images from Cloudinary
-    const deletePromises = tipTrick.imageUrls?.map((image) => {
+    const deletePromises = tipTrick.imageUrls?.map(image => {
       const publicId = image.split('/').pop()?.split('.').shift();
-      if (publicId) {
-        return cloudinary.uploader.destroy(`tips_tricks/${publicId}`);
-      }
-      return Promise.resolve(); // Handle cases where publicId is undefined
-    }).filter(promise => promise !== undefined) as Promise<any>[];
-
+      return publicId ? cloudinary.uploader.destroy(`tips_tricks/${publicId}`) : Promise.resolve();
+    }) ?? [];
     await Promise.all(deletePromises);
-
     await tipTrick.deleteOne();
-    res.status(200).json({ message: 'Tip or trick deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Tip or trick deleted successfully');
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
-// Admin: Get all tips and tricks with their images
+// Admin: Get all tips and tricks
 export const adminGetAllTipsTricks = async (req: Request, res: Response) => {
   try {
     const tipsTricks = await TipTrick.find();
-    res.status(200).json(tipsTricks);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Admin: Tips and tricks retrieved successfully', tipsTricks);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };
 
@@ -128,23 +102,17 @@ export const adminDeleteTipTrickById = async (req: Request, res: Response) => {
   try {
     const tipTrick = await TipTrick.findById(req.params.id);
     if (!tipTrick) {
-      return res.status(404).json({ message: 'Tip or trick not found.' });
+      return sendResponse(res, false, 404, 'Tip or trick not found');
     }
 
-    // Delete associated images from Cloudinary
-    const deletePromises = tipTrick.imageUrls?.map((image) => {
+    const deletePromises = tipTrick.imageUrls?.map(image => {
       const publicId = image.split('/').pop()?.split('.').shift();
-      if (publicId) {
-        return cloudinary.uploader.destroy(`tips_tricks/${publicId}`);
-      }
-      return Promise.resolve(); // Handle cases where publicId is undefined
-    }).filter(promise => promise !== undefined) as Promise<any>[];
-
+      return publicId ? cloudinary.uploader.destroy(`tips_tricks/${publicId}`) : Promise.resolve();
+    }) ?? [];
     await Promise.all(deletePromises);
-
     await tipTrick.deleteOne();
-    res.status(200).json({ message: 'Tip or trick deleted successfully by admin.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, 'Admin: Tip or trick deleted successfully');
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
   }
 };

@@ -2,16 +2,33 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from './user';
 
 export interface ILike extends Document {
-  post: Schema.Types.ObjectId; // The post that is liked
-  user: IUser['_id']; // The user who liked the post
-  createdAt: Date;
+  targetType: 'Post' | 'Reel' | 'Comment' | 'Resource' | 'Other'; // The type of entity that is liked
+  targetId: Schema.Types.ObjectId;                 // The ID of the associated entity (post, reel, comment, etc.)
+  user: IUser['_id'];                              // The user who liked the entity
+  createdAt: Date;                                 // Timestamp when the like was created
 }
 
-const LikeSchema: Schema = new Schema({
-  post: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
-  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  createdAt: { type: Date, default: Date.now },
-});
+const LikeSchema: Schema = new Schema(
+  {
+    targetType: {
+      type: String,
+      enum: ['Post', 'Reel', 'Comment', 'Resource', 'Other'], // Define the possible types
+      required: true,
+    },
+    targetId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+  },
+  {
+    timestamps: { createdAt: true, updatedAt: false }, // Automatically adds createdAt but not updatedAt
+  }
+);
 
 const Like = mongoose.model<ILike>('Like', LikeSchema);
 

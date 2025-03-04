@@ -6,35 +6,28 @@ import Follow from './follow';    // Import Follow model
 import Save from './save'; 
 
 export interface IUser extends Document {
+  username: string;
   name: string;
+  bio: string;
   email: string;
   password: string;
-  isStudent: boolean;
-  studentId?: string;
+  stream: string;
   profilePhoto?: string;
-  backgrountPhoto?: string;
-  educationField?: mongoose.Types.ObjectId; // Reference to the EducationField model
   inAppCurrency: number;
-  role: string;
 }
 
 const UserSchema: Schema = new Schema({
+  username: { type: String, required: true, unique: true },
   name: { type: String, required: true },
+  bio: { type: String },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  isStudent: { type: Boolean, default: false },
   profilePhoto: { type: String },
-  backgrountPhoto: { type: String },
-  studentId: { type: String },
-  educationField: {
-    type: Schema.Types.ObjectId,
-    ref: 'EducationField',
-  },
+  stream: {type: String, required: true},
   inAppCurrency: {
     type: Number,
     default: 0, // Default to 0, can be updated based on actions
   },
-  role: { type: String, enum: ['student', 'teacher'], required: true },
 });
 
 UserSchema.pre('deleteOne', { document: true, query: false }, async function (next) {

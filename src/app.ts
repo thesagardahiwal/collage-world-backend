@@ -14,6 +14,7 @@ import commentRoutes from './routes/commentRoutes';
 import likeRoutes from './routes/likeRoutes';
 import saveRoutes from './routes/saveRoutes';
 import postRoutes from './routes/postRoutes';
+import reelRoutes from './routes/reelRoutes';
 
 import subjectRoutes from './routes/subjectRoutes';
 import resourceRoutes from './routes/resourceRoutes';
@@ -49,6 +50,7 @@ app.use('/api', likeRoutes);
 app.use('/api', saveRoutes);
 app.use('/api', subjectRoutes);
 app.use('/api/resource', resourceRoutes);
+app.use('/api/reels', reelRoutes);
 app.use('/api', educationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/eduResources', eduResourceRoutes);

@@ -2,13 +2,17 @@ import mongoose, { Document, Schema } from 'mongoose';
 import { IUser } from './user';
 
 export interface ISave extends Document {
-  post: Schema.Types.ObjectId; // The post that is saved
+  targetType: 'Post' | 'Reel' | 'Comment' | 'Resource' | 'Other';
   user: IUser['_id']; // The user who saved the post
   createdAt: Date;
 }
 
 const SaveSchema: Schema = new Schema({
-  post: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+  targetType: {
+    type: String,
+    enum: ['Post', 'Reel', 'Comment', 'Resource', 'Other'], // Define the possible types
+    required: true,
+  },
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   createdAt: { type: Date, default: Date.now },
 });

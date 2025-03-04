@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import cloudinary from '../config/claudinary';
 import News from '../models/news';
 import { IUser } from '../models/user';
+import { sendResponse } from '../utils/helper';
+
 
 // Create news
 export const createNews = async (req: Request, res: Response) => {
@@ -9,24 +11,21 @@ export const createNews = async (req: Request, res: Response) => {
     const { title, content } = req.body;
     const images: string[] = req.fileUrls || [];
 
-
-
-    if(!req.user) {
-      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    if (!req.user) {
+      return sendResponse(res, false, 401, "Unauthorized access. Please provide valid authentication credentials.");
     }
 
     const news = new News({
       title,
       content,
-      createdBy: req.user._id as IUser['_id'], // Assuming user is attached to req
+      createdBy: req.user._id as IUser['_id'],
       images,
     });
 
     await news.save();
-
-    res.status(201).json(news);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 201, "News created successfully", news);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -34,9 +33,9 @@ export const createNews = async (req: Request, res: Response) => {
 export const getAllNews = async (req: Request, res: Response) => {
   try {
     const newsList = await News.find().populate('createdBy', 'name');
-    res.status(200).json(newsList);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "News retrieved successfully", newsList);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -44,14 +43,12 @@ export const getAllNews = async (req: Request, res: Response) => {
 export const getNewsById = async (req: Request, res: Response) => {
   try {
     const news = await News.findById(req.params.id).populate('createdBy', 'name');
-
     if (!news) {
-      return res.status(404).json({ message: 'News not found.' });
+      return sendResponse(res, false, 404, "News not found");
     }
-
-    res.status(200).json(news);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "News retrieved successfully", news);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -62,22 +59,16 @@ export const updateNewsById = async (req: Request, res: Response) => {
     const updates: any = { title, content };
 
     if (req.fileUrls) {
-      const images: string[] = [];
-      for (const file of req.fileUrls) {
-        images.push(file);
-      }
-      updates.images = images;
+      updates.images = req.fileUrls;
     }
 
     const news = await News.findByIdAndUpdate(req.params.id, updates, { new: true });
-
     if (!news) {
-      return res.status(404).json({ message: 'News not found.' });
+      return sendResponse(res, false, 404, "News not found");
     }
-
-    res.status(200).json(news);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "News updated successfully", news);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -85,13 +76,11 @@ export const updateNewsById = async (req: Request, res: Response) => {
 export const deleteNewsById = async (req: Request, res: Response) => {
   try {
     const news = await News.findById(req.params.id);
-
     if (!news) {
-      return res.status(404).json({ message: 'News not found.' });
+      return sendResponse(res, false, 404, "News not found");
     }
 
-    // Delete associated images from Cloudinary
-    if (news.images && news.images.length > 0) {
+    if (news.images?.length) {
       for (const imageUrl of news.images) {
         const publicId = imageUrl.split('/').pop()?.split('.').shift();
         if (publicId) {
@@ -101,9 +90,9 @@ export const deleteNewsById = async (req: Request, res: Response) => {
     }
 
     await news.deleteOne();
-    res.status(200).json({ message: 'News deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "News deleted successfully");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -111,13 +100,11 @@ export const deleteNewsById = async (req: Request, res: Response) => {
 export const adminDeleteNews = async (req: Request, res: Response) => {
   try {
     const news = await News.findById(req.params.id);
-
     if (!news) {
-      return res.status(404).json({ message: 'News not found.' });
+      return sendResponse(res, false, 404, "News not found");
     }
 
-    // Delete associated images from Cloudinary
-    if (news.images && news.images.length > 0) {
+    if (news.images?.length) {
       for (const imageUrl of news.images) {
         const publicId = imageUrl.split('/').pop()?.split('.').shift();
         if (publicId) {
@@ -127,8 +114,8 @@ export const adminDeleteNews = async (req: Request, res: Response) => {
     }
 
     await news.deleteOne();
-    res.status(200).json({ message: 'News deleted successfully by admin.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "News deleted successfully by admin");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };

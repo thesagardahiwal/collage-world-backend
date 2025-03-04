@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Like from '../models/like';
 import Post from '../models/post';
+import { sendResponse } from '../utils/helper';
 
 // Like a post
 export const likePost = async (req: Request, res: Response) => {
@@ -8,30 +9,26 @@ export const likePost = async (req: Request, res: Response) => {
     const { postId } = req.body;
     const userId = req.user?._id;
 
-    if(!userId) {
-      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    if (!userId) {
+      return sendResponse(res, false, 401, "Unauthorized access. Please provide valid authentication credentials.");
     }
 
     const post = await Post.findById(postId);
     if (!post) {
-      return res.status(404).json({ message: "Post not found" });
+      return sendResponse(res, false, 404, "Post not found");
     }
 
     const existingLike = await Like.findOne({ post: postId, user: userId });
     if (existingLike) {
-      return res.status(400).json({ message: "You have already liked this post" });
+      return sendResponse(res, false, 400, "You have already liked this post");
     }
 
-    const like = new Like({
-      post: postId,
-      user: userId,
-    });
-
+    const like = new Like({ post: postId, user: userId });
     await like.save();
 
-    res.status(201).json({ message: "Post liked successfully", like });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    return sendResponse(res, true, 201, "Post liked successfully", like);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -41,18 +38,17 @@ export const unlikePost = async (req: Request, res: Response) => {
     const { postId } = req.body;
     const userId = req.user?._id;
 
-    if(!userId) {
-      return res.status(401).json({message : "Unauthorized access. Please provide valid authentication credentials."})
+    if (!userId) {
+      return sendResponse(res, false, 401, "Unauthorized access. Please provide valid authentication credentials.");
     }
 
     const like = await Like.findOneAndDelete({ post: postId, user: userId });
-
     if (!like) {
-      return res.status(404).json({ message: "You haven't liked this post yet" });
+      return sendResponse(res, false, 404, "You haven't liked this post yet");
     }
 
-    res.status(200).json({ message: "Post unliked successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    return sendResponse(res, true, 200, "Post unliked successfully");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };

@@ -6,6 +6,8 @@ export interface IAnswer extends Document {
   content: string;
   images: string[]; // URLs of images uploaded to Cloudinary
   createdAt: Date;
+  votes: string[],
+  likes: number,
   updatedAt: Date;
 }
 
@@ -14,6 +16,10 @@ const AnswerSchema: Schema = new Schema({
   answerer: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   images: [{ type: String }], // Array of image URLs
+  votes: [{
+      type: mongoose.Types.ObjectId,
+      ref: 'Like', // Reference to the Like model
+    }],
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

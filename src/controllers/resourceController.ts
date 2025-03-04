@@ -1,57 +1,74 @@
 import { Request, Response } from 'express';
 import Resource, { IResource } from '../models/resource';
+import { sendResponse } from '../utils/helper';
 
-export const createResource = async (req: Request, res: Response)=> {
-  const { title, subject, examType, resourceType, content } = req.body;
+// Create a new resource
+export const createResource = async (req: Request, res: Response) => {
   try {
+    const { title, subject, examType, resourceType, pdfUrl } = req.body;
     const user = req.user?._id;
-    if(!user) {
-      return res.status(404).json({message: "User is not fount!"});
+    if (!user) {
+      return sendResponse(res, false, 401, 'User not found');
     }
-    const newResource = new Resource({ title, subject, examType, resourceType, content, author: user });
+    const newResource = new Resource({ title, subject, examType, resourceType, pdfUrl, author: user });
     await newResource.save();
-    const modifiedResource = newResource.populate('author', 'name');
-    res.status(201).json(modifiedResource);
+    await newResource.populate('author', 'name');
+    return sendResponse(res, true, 201, 'Resource created successfully', newResource);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, false, 500, 'Server error', err.message);
   }
 };
 
+// Get resources
 export const getResources = async (req: Request, res: Response) => {
-  const { subject, examType } = req.query;
   try {
-    if (!subject && !examType) {
-      const resources = await Resource.find().populate('author', 'name');
-      if (!resources) {
-        return res.status(400).json({ message: "No resources!" });
-      }
-      return res.status(200).json({ resources })
+    const { subject, examType } = req.query;
+    const query: any = {};
+    if (subject) query.subject = subject;
+    if (examType) query.examType = examType;
+    const resources = await Resource.find(query).populate('author', 'name');
+    if (resources.length === 0) {
+      return sendResponse(res, false, 404, 'No resources found');
     }
-    const resources = await Resource.find({ subject, examType });
-    return res.status(200).json(resources);
+    return sendResponse(res, true, 200, 'Resources retrieved successfully', resources);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, false, 500, 'Server error', err.message);
   }
 };
 
+// Remove a resource
 export const removeResources = async (req: Request, res: Response) => {
-  const { id } = req.params;
   try {
+    const { id } = req.params;
     const user = req.user?._id;
-    if(!user) {
-      return res.status(401).json({message: "User is not found!"});
+    if (!user) {
+      return sendResponse(res, false, 401, 'User not found');
     }
-    const resource = await Resource.findOne({_id: id});
-    if(!resource) {
-      return res.status(400).json({message: "Not Fount!"});
+    const resource = await Resource.findById(id);
+    if (!resource) {
+      return sendResponse(res, false, 404, 'Resource not found');
     }
-
-    if (resource.author.toString() != user) {
-      return res.status(400).json({message: "You are not author of this resource."});
+    if (resource.author.toString() !== user) {
+      return sendResponse(res, false, 403, 'You are not the author of this resource');
     }
-    await Resource.deleteOne({_id: resource._id});
-    res.status(200).json("DELETD!")
+    await resource.deleteOne();
+    return sendResponse(res, true, 200, 'Resource deleted successfully');
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return sendResponse(res, false, 500, 'Server error', err.message);
   }
-}
+};
+
+// Get stream-specific resources
+export const getStreamResources = async (req: Request, res: Response) => {
+  try {
+    const { stream } = req.params;
+    const query = stream ? { stream } : {};
+    const resources = await Resource.find(query).populate('author', 'name');
+    if (resources.length === 0) {
+      return sendResponse(res, false, 404, 'No resources found for this stream');
+    }
+    return sendResponse(res, true, 200, 'Stream resources retrieved successfully', resources);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, 'Server error', error.message);
+  }
+};

@@ -1,41 +1,54 @@
 import { Request, Response } from 'express';
-import cloudinary from '../config/claudinary';  // Import Cloudinary setup
+import cloudinary from '../config/claudinary';
 import Post from '../models/post';
 import { getLocationOfFile } from '../utils/helperClaudinary';
+import User from '../models/user';
+import { sendResponse } from '../utils/helper';
 
 // Create a new post
 export const createPost = async (req: Request, res: Response) => {
   try {
-    const { title, content } = req.body;
+    const { title, content, author } = req.body;
     const images = req.fileUrls || [];
 
-    const post = new Post({
-      title,
-      content,
-      images,
-      author: req.body.author, // Assuming author ID is provided in the request body
-    });
-
+    const post = new Post({ title, content, images, author });
     await post.save();
 
-    res.status(201).json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 201, "Post created successfully", post);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
 // Get a post by ID
 export const getPostById = async (req: Request, res: Response) => {
   try {
-    const post = await Post.findById(req.params.id).populate('author');
+    const post = await Post.findById(req.params.id).populate('author').populate({
+      path: 'comment',
+      populate: { path: 'user', model: 'User' },
+    });
 
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return sendResponse(res, false, 404, "Post not found");
+    }
+    return sendResponse(res, true, 200, "Post retrieved successfully", post);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
+  }
+};
+
+// Get posts by user ID
+export const getPostByUserId = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return sendResponse(res, false, 404, "No user found");
     }
 
-    res.status(200).json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    const posts = await Post.find({ author: user._id });
+    return sendResponse(res, true, 200, "Posts retrieved successfully", posts);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -48,24 +61,16 @@ export const updatePostById = async (req: Request, res: Response) => {
     if (title) updates.title = title;
     if (content) updates.content = content;
     if (req.fileUrls?.length) {
-      const images = []
-      for (let file of req.fileUrls) {
-          images.push( req.fileUrls);
-      }
-      if (images.length > 0) {
-        updates.images = images;
-      }
+      updates.images = req.fileUrls;
     }
 
     const post = await Post.findByIdAndUpdate(req.params.id, updates, { new: true });
-
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return sendResponse(res, false, 404, "Post not found");
     }
-
-    res.status(200).json(post);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Post updated successfully", post);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -73,34 +78,31 @@ export const updatePostById = async (req: Request, res: Response) => {
 export const deletePostById = async (req: Request, res: Response) => {
   try {
     const post = await Post.findById(req.params.id);
-
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return sendResponse(res, false, 404, "Post not found");
     }
 
-    // Delete associated images from Cloudinary
     for (const image of post.images) {
-      const publicId = image.split('/').pop()?.split('.').shift(); // Extract public ID from URL
+      const publicId = image.split('/').pop()?.split('.').shift();
       if (publicId) {
-        await cloudinary.uploader.destroy(`posts/${publicId}`);
+        await cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
     }
 
     await post.deleteOne();
-
-    res.status(200).json({ message: 'Post deleted successfully.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Post deleted successfully");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
-// Admin: Get all posts
+// Get all posts (Admin)
 export const getAllPosts = async (req: Request, res: Response) => {
   try {
     const posts = await Post.find().populate('author');
-    res.status(200).json(posts);
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "All posts retrieved successfully", posts);
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
 
@@ -108,23 +110,20 @@ export const getAllPosts = async (req: Request, res: Response) => {
 export const adminDeletePost = async (req: Request, res: Response) => {
   try {
     const post = await Post.findById(req.params.id);
-
     if (!post) {
-      return res.status(404).json({ message: 'Post not found.' });
+      return sendResponse(res, false, 404, "Post not found");
     }
 
-    // Delete associated images from Cloudinary
     for (const image of post.images) {
-      const publicId = image.split('/').pop()?.split('.').shift(); // Extract public ID from URL
+      const publicId = image.split('/').pop()?.split('.').shift();
       if (publicId) {
         await cloudinary.uploader.destroy(getLocationOfFile(publicId));
       }
     }
 
     await post.deleteOne();
-
-    res.status(200).json({ message: 'Post deleted successfully by admin.' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error', error });
+    return sendResponse(res, true, 200, "Post deleted successfully by admin");
+  } catch (error: any) {
+    return sendResponse(res, false, 500, "Server error", error.message);
   }
 };
