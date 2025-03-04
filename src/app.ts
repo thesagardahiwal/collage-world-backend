@@ -42,23 +42,23 @@ app.use(cors({
   }));
 
 connectDB();
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api', followRoutes);
-app.use('/api', commentRoutes);
-app.use('/api', likeRoutes);
-app.use('/api', saveRoutes);
-app.use('/api', subjectRoutes);
-app.use('/api/resource', resourceRoutes);
-app.use('/api/reels', reelRoutes);
-app.use('/api', educationRoutes);
-app.use('/api/posts', postRoutes);
-app.use('/api/eduResources', eduResourceRoutes);
-app.use('/api/doubts', doubtRoutes);
-app.use('/api/answers', answerRoutes);
-app.use('/api/news', newsRoutes);
-app.use('/api/tiptricks', tipTrickRoutes);
-app.use('/api', noteRoutes);
+app.use('/api/auth', authRoutes); // Authentication
+app.use('/api/user', userRoutes); // User profile management
+app.use('/api/follow', followRoutes); // Follow/unfollow
+app.use('/api/comment', commentRoutes); // Comments
+app.use('/api/like', likeRoutes); // Likes
+app.use('/api/save', saveRoutes); // Saved posts
+app.use('/api/subject', subjectRoutes); // Subjects
+app.use('/api/resource', resourceRoutes); // General resources
+app.use('/api/reels', reelRoutes); // Reels content
+app.use('/api/education', educationRoutes); // Education
+app.use('/api/posts', postRoutes); // Posts
+app.use('/api/eduResources', eduResourceRoutes); // Educational resources
+app.use('/api/doubts', doubtRoutes); // Doubt discussions
+app.use('/api/answers', answerRoutes); // Answers to doubts
+app.use('/api/news', newsRoutes); // News updates
+app.use('/api/tiptricks', tipTrickRoutes); // Tips & Tricks
+app.use('/api/notes', noteRoutes); // Study notes
 
 app.use(errorHandler);
 setupSocketIO(server);

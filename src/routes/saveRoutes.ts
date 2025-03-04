@@ -4,10 +4,18 @@ import { isAuthenticated } from '../middlewares/authMiddleware';
 
 const router = Router();
 
-// Route to save a post
-router.post('/save', isAuthenticated, savePost);
+/**
+ * @route   POST /api/save/:postId
+ * @desc    Save a post
+ * @access  Private (Authenticated users only)
+ */
+router.post('/:postId', isAuthenticated, savePost);
 
-// Route to unsave a post
-router.post('/unsave', isAuthenticated, unsavePost);
+/**
+ * @route   DELETE /api/save/:postId
+ * @desc    Unsave a post
+ * @access  Private (Authenticated users only)
+ */
+router.delete('/:postId', isAuthenticated, unsavePost);
 
 export default router;

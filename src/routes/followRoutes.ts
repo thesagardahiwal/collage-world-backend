@@ -4,14 +4,32 @@ import { isAuthenticated } from '../middlewares/authMiddleware';
 
 const router = Router();
 
-router.get('/followers/:id', isAuthenticated, getFollowers);
+/**
+ * @route   GET /api/follows/:userId/followers
+ * @desc    Get all followers of a user
+ * @access  Private (Authenticated users)
+ */
+router.get('/:userId/followers', isAuthenticated, getFollowers);
 
-router.get('/following/:id', isAuthenticated, getFollowing);
+/**
+ * @route   GET /api/follows/:userId/following
+ * @desc    Get all users followed by a user
+ * @access  Private (Authenticated users)
+ */
+router.get('/:userId/following', isAuthenticated, getFollowing);
 
-// Route to follow a user
-router.post('/follow', isAuthenticated, followUser);
+/**
+ * @route   POST /api/follows/:userId
+ * @desc    Follow a user
+ * @access  Private (Authenticated users)
+ */
+router.post('/:userId', isAuthenticated, followUser);
 
-// Route to unfollow a user
-router.post('/unfollow', isAuthenticated, unfollowUser);
+/**
+ * @route   DELETE /api/follows/:userId
+ * @desc    Unfollow a user
+ * @access  Private (Authenticated users)
+ */
+router.delete('/:userId', isAuthenticated, unfollowUser);
 
 export default router;

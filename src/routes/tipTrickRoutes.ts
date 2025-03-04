@@ -1,31 +1,65 @@
 import express from 'express';
-import {uploadFilesToCloudinary} from "../config/claudinary"
-import { createTipTrick, getAllTipsTricks, getTipTrickById, updateTipTrickById, deleteTipTrickById, adminGetAllTipsTricks, adminDeleteTipTrickById } from '../controllers/tipTrickController';
-import { isAuthenticated } from '../middlewares/authMiddleware';
-import { isAdmin } from '../middlewares/authMiddleware';
+import { uploadFilesToCloudinary as upload } from "../config/claudinary";
+import { 
+    createTipTrick, 
+    getAllTipsTricks, 
+    getTipTrickById, 
+    updateTipTrickById, 
+    deleteTipTrickById, 
+    adminGetAllTipsTricks, 
+    adminDeleteTipTrickById 
+} from '../controllers/tipTrickController';
+import { isAuthenticated, isAdmin } from '../middlewares/authMiddleware';
 
 const router = express.Router();
-const upload =  uploadFilesToCloudinary// Adjust as needed
 
-// Create a new tip or trick
+/**
+ * @route   POST /api/tiptricks
+ * @desc    Create a new tip or trick
+ * @access  Private (Authenticated users only)
+ */
 router.post('/', isAuthenticated, upload('images', 5), createTipTrick);
 
-// Get all tips and tricks
+/**
+ * @route   GET /api/tiptricks
+ * @desc    Get all tips and tricks
+ * @access  Public
+ */
 router.get('/', getAllTipsTricks);
 
-// Get a tip or trick by ID
+/**
+ * @route   GET /api/tiptricks/:id
+ * @desc    Get a single tip or trick by ID
+ * @access  Public
+ */
 router.get('/:id', getTipTrickById);
 
-// Update a tip or trick by ID
+/**
+ * @route   PUT /api/tiptricks/:id
+ * @desc    Update a tip or trick by ID
+ * @access  Private (Authenticated users only)
+ */
 router.put('/:id', isAuthenticated, upload('images', 5), updateTipTrickById);
 
-// Delete a tip or trick by ID
-router.delete("/:id", isAuthenticated, deleteTipTrickById);
+/**
+ * @route   DELETE /api/tiptricks/:id
+ * @desc    Delete a tip or trick by ID
+ * @access  Private (Authenticated users only)
+ */
+router.delete('/:id', isAuthenticated, deleteTipTrickById);
 
-// Delete a tip or trick by ID (Admin only)
-router.delete('/:id', isAuthenticated, isAdmin, adminDeleteTipTrickById);
+/**
+ * @route   DELETE /api/tiptricks/admin/:id
+ * @desc    Admin: Delete any tip or trick by ID
+ * @access  Private (Admin only)
+ */
+router.delete('/admin/:id', isAuthenticated, isAdmin, adminDeleteTipTrickById);
 
-// Admin: Get all tips and tricks
+/**
+ * @route   GET /api/tiptricks/admin
+ * @desc    Admin: Get all tips and tricks
+ * @access  Private (Admin only)
+ */
 router.get('/admin', isAuthenticated, isAdmin, adminGetAllTipsTricks);
 
 export default router;

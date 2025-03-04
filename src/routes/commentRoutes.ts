@@ -4,14 +4,32 @@ import { isAuthenticated } from '../middlewares/authMiddleware';
 
 const router = Router();
 
-// Route to create a new comment
-router.post('/comment', isAuthenticated, createComment);
+/**
+ * @route   POST /api/comments
+ * @desc    Create a new comment
+ * @access  Private (Authenticated users)
+ */
+router.post('/', isAuthenticated, createComment);
 
-router.get('/comment/:id', getCommentById);
-// Route to update an existing comment
-router.put('/comment', isAuthenticated, updateComment);
+/**
+ * @route   GET /api/comments/:id
+ * @desc    Get a comment by ID
+ * @access  Public
+ */
+router.get('/:id', getCommentById);
 
-// Route to delete a comment
-router.delete('/comment', isAuthenticated, deleteComment);
+/**
+ * @route   PUT /api/comments/:id
+ * @desc    Update an existing comment
+ * @access  Private (Authenticated users)
+ */
+router.put('/:id', isAuthenticated, updateComment);
+
+/**
+ * @route   DELETE /api/comments/:id
+ * @desc    Delete a comment by ID
+ * @access  Private (Authenticated users)
+ */
+router.delete('/:id', isAuthenticated, deleteComment);
 
 export default router;

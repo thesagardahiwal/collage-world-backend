@@ -4,10 +4,18 @@ import { isAuthenticated } from '../middlewares/authMiddleware';
 
 const router = Router();
 
-// Route to like a post
-router.post('/like', isAuthenticated, likePost);
+/**
+ * @route   POST /api/likes/:postId
+ * @desc    Like a post
+ * @access  Private (Authenticated users)
+ */
+router.post('/:postId', isAuthenticated, likePost);
 
-// Route to unlike a post
-router.post('/unlike', isAuthenticated, unlikePost);
+/**
+ * @route   DELETE /api/likes/:postId
+ * @desc    Unlike a post
+ * @access  Private (Authenticated users)
+ */
+router.delete('/:postId', isAuthenticated, unlikePost);
 
 export default router;
